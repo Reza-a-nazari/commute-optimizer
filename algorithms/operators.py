@@ -54,41 +54,42 @@ def get_neighbors(state: State, problem: CommuteProblem) -> List[State]:
     path = state.path
     n = len(path)
     if n >= 4: 
-        for i in range(1, n - 2):
-            for j in range(i + 2, n - 1):
-                u = path[i - 1]
-                v = path[j + 1]
-                forbidden = set(path[i:j+1])
-                
-                queue = deque([(u, (u,))])
-                visited = {u}
-                alt_subpath = None
-                
-                while queue: 
-                    curr, curr_path = queue.popleft()
-                    if len(curr_path) > 4:
+        middle_ind = list(range(1,n-1))
+        random.shuffle(middle_ind)
+
+        for index in middle_ind :
+            u = path[index-1]
+            v= path[index+1]
+            forbidden = set(path) - {u,v}
+        
+            queue = deque([(u, (u,))])
+            visited = {u}
+            alt_subpath = None
+            
+            while queue: 
+                curr, curr_path = queue.popleft()
+                if len(curr_path) > 8:
+                    continue
+                for next_node in problem.network.get_neighbors(curr):
+                    if next_node in forbidden or next_node in visited:
                         continue
-                    for next_node in problem.network.get_neighbors(curr):
-                        if next_node in forbidden or next_node in visited:
-                            continue
-                        new_path = curr_path + (next_node,)
-                        if next_node == v:
-                            alt_subpath = new_path
-                            break
-                        visited.add(next_node)
-                        queue.append((next_node, new_path))
-                    if alt_subpath:
+                    new_path = curr_path + (next_node,)
+                    if next_node == v:
+                        alt_subpath = new_path
                         break
-                        
-                if alt_subpath and len(alt_subpath) > 2:
-                    new_route = path[:i] + tuple(alt_subpath) + path[j+1:]
-                    new_state = State(path=new_route, departure_time=state.departure_time)
-                    if problem.is_valid_state(new_state):
-                        neighbor.append(new_state)
-                        if len(neighbor) >= 7:
-                            break
-            if len(neighbor) >= 7:
-                break
+                    visited.add(next_node)
+                    queue.append((next_node, new_path))
+                if alt_subpath:
+                    break
+                    
+            if alt_subpath and len(alt_subpath) > 2:
+                new_route = path[:index] + tuple(alt_subpath[1:-1]) + path[index+1:]
+                new_state = State(path=new_route, departure_time=state.departure_time)
+                if problem.is_valid_state(new_state):
+                    neighbor.append(new_state)
+                    if len(neighbor) >= 7:
+                        break
+
 
     if len(neighbor) > 2:
         random_detour = random.choice(neighbor[2:])
