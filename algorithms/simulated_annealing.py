@@ -71,3 +71,4 @@ class SimulatedAnnealingSolver(LocalSearchSolver):
             temperature = temperature * self.cooling_rate
             
         return best_state, best_cost
+    # lkjhgkjhgf
